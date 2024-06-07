@@ -8,11 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MemCache implements  IMemCache {
+public class MemCache implements IMemCache {
     Map<String, Integer> addressMap;
+    private final String path;
 
-    public MemCache() {
-        Path filePath = Paths.get("mem_cache_backup.txt");
+    public MemCache(String path) {
+        this.path = path;
+        Path filePath = Paths.get(this.path + ".mem_cache");
         if(Files.exists(filePath)){
             try {
                 String content = new String(Files.readAllBytes(filePath));
@@ -28,7 +30,6 @@ public class MemCache implements  IMemCache {
         } else {
             addressMap = new HashMap<>();
         }
-
     }
 
     @Override
@@ -42,8 +43,8 @@ public class MemCache implements  IMemCache {
     }
 
     @Override
-    public void UpdateAddress(String key, Integer address) {
-        addressMap.put(key, address);
+    public void UpdateAddress(String key, Integer line) {
+        addressMap.put(key, line);
     }
 
     @Override
@@ -53,14 +54,14 @@ public class MemCache implements  IMemCache {
             for(Map.Entry<String, Integer> entry: addressMap.entrySet()){
                 lines.add(entry.getKey() + ":" + entry.getValue());
             }
-            Files.write(Paths.get("mem_cache_backup.txt"), String.join(";", lines).getBytes());
+            Files.write(Paths.get(this.path), String.join(";", lines).getBytes());
         } catch (Exception e){
             e.printStackTrace();
         }
     }
 
     @Override
-    public List<Integer> getKeys() {
-        return new ArrayList<>(addressMap.values());
+    public List<String> getKeys() {
+        return new ArrayList<String>(addressMap.keySet());
     }
 }

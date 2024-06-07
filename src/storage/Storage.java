@@ -5,18 +5,23 @@ import file.IFile;
 import memCache.IMemCache;
 import memCache.MemCache;
 
-public class Storage implements IStorage{
-    private String storagePath = "raw_storage.txt";
-    private IFile file = new FileImp(storagePath);
-    private IMemCache addressCache = new MemCache();
-    private Integer lastLine = 0;
+import java.util.List;
+
+public class Storage implements IStorage {
+    private final IFile file;
+    private final IMemCache addressCache;
+    private Integer lastRegister = 0;
+
+    public Storage(String storagePath) {
+        this.file = new FileImp(storagePath);
+        this.addressCache = new MemCache(storagePath + ".mem_cache");
+    }
 
     @Override
-    public void Create(String value) {
+    public void Create(IDataEntity value) {
         try{
-            file.write(value);
-            addressCache.UpdateAddress(lastLine.toString(), lastLine);
-            lastLine++;
+            file.write(value.toString());
+            addressCache.UpdateAddress(value.getId(), this.lastRegister++);
         } catch (Exception e){
             throw new RuntimeException("Error creating file");
         }
@@ -24,13 +29,13 @@ public class Storage implements IStorage{
     }
 
     @Override
-    public String Read(Integer key) {
+    public String Read(String key) {
         try {
             if(!hasKey(key)){
                 throw new Exception("Key not found");
             }
 
-            Integer file_line = addressCache.GetAddress(key.toString());
+            Integer file_line = addressCache.GetAddress(key);
             return file.read(file_line);
         } catch (Exception e){
             throw new RuntimeException("Error reading file");
@@ -38,27 +43,28 @@ public class Storage implements IStorage{
     }
 
     @Override
-    public void Update(Integer key, String value) {
+    public void Update(IDataEntity value) {
+        String key = value.getId();
         try{
             if(!hasKey(key)){
                 throw new Exception("Key not found");
             }
 
-            file.write(value);
-            addressCache.UpdateAddress(key.toString(), ++lastLine);
+            file.write(value.toString());
+            addressCache.UpdateAddress(key, this.lastRegister++);
         } catch (Exception e){
             throw new RuntimeException("Error updating file");
         }
     }
 
     @Override
-    public void Delete(Integer key) {
+    public void Delete(String key) {
         try{
             if(!hasKey(key)){
                 throw new Exception("Key not found");
             }
 
-            addressCache.RemoveAddress(key.toString());
+            addressCache.RemoveAddress(key);
         } catch (Exception e){
             throw new RuntimeException("Error deleting file");
         }
@@ -68,7 +74,7 @@ public class Storage implements IStorage{
         addressCache.saveBackup();
     }
 
-    private Boolean hasKey(Integer key){
-        return addressCache.GetAddress(key.toString()) != null;
+    private Boolean hasKey(String key){
+        return addressCache.GetAddress(key) != null;
     }
 }

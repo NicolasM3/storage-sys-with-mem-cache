@@ -9,8 +9,8 @@ import java.nio.file.StandardOpenOption;
 import java.util.stream.Stream;
 
 public class FileImp implements IFile {
-    private String filePath;
-    private BufferedWriter storageWriter;
+    private final String filePath;
+    private final BufferedWriter storageWriter;
 
     public FileImp(String filePath) {
         this.filePath = filePath;
